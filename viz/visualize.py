@@ -35,35 +35,37 @@ class Visualizer():
             of rows should be even, so that upper half contains true data and
             bottom half contains reconstructions
         """
-        # Plot reconstructions in test mode, i.e. without sampling from latent
-        self.model.eval()
-        # Pass data through VAE to obtain reconstruction
-        input_data = Variable(data, volatile=True)
-        if self.model.use_cuda:
-            input_data = input_data.cuda()
-        recon_data, _ = self.model(input_data)
-        self.model.train()
+        with torch.no_grad():
+            # Plot reconstructions in test mode, i.e. without sampling from latent
+            self.model.eval()
+            # Pass data through VAE to obtain reconstruction
+            input_data = Variable(data) # removed volatile=True and replaced as "with torch.no_grad()"
+            if self.model.use_cuda:
+                input_data = input_data.cuda()
+            recon_data, _ = self.model(input_data)
+            self.model.train()
 
-        # Upper half of plot will contain data, bottom half will contain
-        # reconstructions
-        num_images = size[0] * size[1] / 2
-        originals = input_data[:num_images].cpu()
-        reconstructions = recon_data.view(-1, *self.model.img_size)[:num_images].cpu()
-        # If there are fewer examples given than spaces available in grid,
-        # augment with blank images
-        num_examples = originals.size()[0]
-        if num_images > num_examples:
-            blank_images = torch.zeros((num_images - num_examples,) + originals.size()[1:])
-            originals = torch.cat([originals, blank_images])
-            reconstructions = torch.cat([reconstructions, blank_images])
+            # Upper half of plot will contain data, bottom half will contain
+            # reconstructions
+            num_images = int(size[0] * size[1] / 2)
+            #print("num_images: ", num_images)
+            originals = input_data[:num_images].cpu()
+            reconstructions = recon_data.view(-1, *self.model.img_size)[:num_images].cpu()
+            # If there are fewer examples given than spaces available in grid,
+            # augment with blank images
+            num_examples = originals.size()[0]
+            if num_images > num_examples:
+                blank_images = torch.zeros((num_images - num_examples,) + originals.size()[1:])
+                originals = torch.cat([originals, blank_images])
+                reconstructions = torch.cat([reconstructions, blank_images])
 
-        # Concatenate images and reconstructions
-        comparison = torch.cat([originals, reconstructions])
+            # Concatenate images and reconstructions
+            comparison = torch.cat([originals, reconstructions])
 
-        if self.save_images:
-            save_image(comparison.data, filename, nrow=size[0])
-        else:
-            return make_grid(comparison.data, nrow=size[0])
+            if self.save_images:
+                save_image(comparison.data, filename, nrow=size[0])
+            else:
+                return make_grid(comparison.data, nrow=size[0])
 
     def samples(self, size=(8, 8), filename='samples.png'):
         """
