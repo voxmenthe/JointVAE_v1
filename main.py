@@ -7,7 +7,7 @@ from torch import optim
 
 batch_size = 64
 lr = 5e-4
-epochs = 100
+epochs = 3
 
 # Check for cuda
 use_cuda = torch.cuda.is_available()
@@ -33,6 +33,7 @@ trainer = Trainer(model, optimizer,
                   use_cuda=use_cuda)
 
 # Train model for 100 epochs
+print("Started Training")
 trainer.train(data_loader, epochs)
 
 # Save trained model
