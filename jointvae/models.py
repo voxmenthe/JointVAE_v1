@@ -53,6 +53,7 @@ class VAE(nn.Module):
 
         # Define encoder layers
         # Intial layer
+        # nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
         encoder_layers = [
             nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1),
             nn.ReLU()
@@ -67,7 +68,8 @@ class VAE(nn.Module):
             # (32, 32) images are supported but do not require an extra layer
             pass
         else:
-            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. Build your own architecture or reshape images!".format(img_size))
+            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. \
+            Build your own architecture or reshape images!".format(img_size))
         # Add final layers
         encoder_layers += [
             nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
