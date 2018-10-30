@@ -1,3 +1,5 @@
+
+import cv2
 import glob
 import numpy as np
 from skimage.io import imread
@@ -18,32 +20,6 @@ def get_mnist_dataloaders(batch_size=128, path_to_data='../data'):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return train_loader, test_loader
-
-
-def get_fashion_mnist_dataloaders(batch_size=128,
-                                  path_to_data='../fashion_data'):
-    """FashionMNIST dataloader with (32, 32) images."""
-    all_transforms = transforms.Compose([
-        transforms.Resize(32),
-        transforms.ToTensor()
-    ])
-    train_data = datasets.FashionMNIST(path_to_data, train=True, download=True,
-                                       transform=all_transforms)
-    test_data = datasets.FashionMNIST(path_to_data, train=False,
-                                      transform=all_transforms)
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
-    return train_loader, test_loader
-
-
-def get_dsprites_dataloader(batch_size=128,
-                            path_to_data='../dsprites-data/dsprites_data.npz'):
-    """DSprites dataloader."""
-    dsprites_data = DSpritesDataset(path_to_data,
-                                    transform=transforms.ToTensor())
-    dsprites_loader = DataLoader(dsprites_data, batch_size=batch_size,
-                                 shuffle=True)
-    return dsprites_loader
 
 
 def get_chairs_dataloader(batch_size=128,
@@ -135,16 +111,20 @@ class CelebADataset(Dataset):
         # Since there are no labels, we just return 0 for the "label" here
         return sample, 0
 
-class CelebADataset(Dataset):
-    """CelebA dataset with 64 by 64 images."""
-    def __init__(self, path_to_data, subsample=1, transform=None):
-        """
-        Parameters
-        ----------
-        subsample : int
-            Only load every |subsample| number of images.
-        """
-        self.img_paths = glob.glob(path_to_data + '/*')[::subsample]
+def get_imagelist_dataloader(batch_size=30, list_of_image_paths=None):
+    """dataloader with (64, 64) images."""
+    if not list_of_image_paths:
+        raise Exception('Must provide a list of image paths')
+    imagelist_data = ImageListDataset(list_of_image_paths,
+                                transform=transforms.ToTensor())
+    imagelist_loader = DataLoader(imagelist_data, batch_size=batch_size,
+                               shuffle=True)
+    return imagelist_loader
+
+class ImageListDataset(Dataset):
+    """Dress Sleeve Attribute Images - 216 x 261 x 3 for the most part."""
+    def __init__(self, list_of_image_paths, transform=None):
+        self.img_paths = list_of_image_paths
         self.transform = transform
 
     def __len__(self):
@@ -157,4 +137,4 @@ class CelebADataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
         # Since there are no labels, we just return 0 for the "label" here
-        return sample, 0        
+        return sample, 0
