@@ -54,22 +54,22 @@ class VAE(nn.Module):
         # Define encoder layers
         # Intial layer
         encoder_layers = [
-            nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1),
+            nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1), # (260, 260) --> (130, 130)
             nn.ReLU()
         ]
 
-        # WIP WIP WIP WIP
-        # Add additional layer if (260, 260) images # REDUCES TO (128, 128)
+        # Add additional layers if (260, 260) images 
         if self.img_size[1:] == (260, 260):
+            # Initial layer will have reduced from (260, 260) to (130, 130)
+            # So this layer will reduce from (130, 130) to (64,64) which will
+            # then be handled by the (64, 64) layer below
             encoder_layers += [
-                nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
+                nn.Conv2d(32, 32, (4, 4), stride=2, padding=0), # (130, 130) --> (64, 64)
                 nn.ReLU()
             ]
 
-
-
-        # Add additional layer if (64, 64) images
-        if self.img_size[1:] == (64, 64):
+        # Add additional layer if (64, 64) images or the reduced from (260, 260)
+        if self.img_size[1:] == (64, 64) or self.img_size[1:] == (260, 260):
             encoder_layers += [
                 nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
                 nn.ReLU()
@@ -78,12 +78,14 @@ class VAE(nn.Module):
             # (32, 32) images are supported but do not require an extra layer
             pass
         else:
-            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. Build your own architecture or reshape images!".format(img_size))
+            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and \
+            (None, 64, 64) and (None, 260,260) supported. Build your own architecture or reshape images!".format(img_size))
+        
         # Add final layers
         encoder_layers += [
-            nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
+            nn.Conv2d(32, 64, (4, 4), stride=2, padding=1), # (32, 32) --> (16, 16)
             nn.ReLU(),
-            nn.Conv2d(64, 64, (4, 4), stride=2, padding=1),
+            nn.Conv2d(64, 64, (4, 4), stride=2, padding=1), # (16, 16) --> (8, 8)
             nn.ReLU()
         ]
 
@@ -137,6 +139,8 @@ class VAE(nn.Module):
             nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1),
             nn.ReLU(),
             nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=0), # added for (260, 260) case
             nn.ReLU(),
             nn.ConvTranspose2d(32, self.img_size[0], (4, 4), stride=2, padding=1),
             nn.Sigmoid()
