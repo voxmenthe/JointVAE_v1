@@ -32,7 +32,7 @@ class Rescale(object):
 
         new_h, new_w = int(new_h), int(new_w)
 
-        img = transform.resize(image, (new_h, new_w))
+        img = transforms.Resize(image, (new_h, new_w),  interpolation=Image.BICUBIC)
 
         return {'image': img}
 
