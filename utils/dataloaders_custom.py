@@ -33,7 +33,7 @@ class Rescale(object):
 
         new_h, new_w = int(new_h), int(new_w)
 
-        img = transforms.Resize(image, (new_h, new_w),  interpolation=Image.BICUBIC)
+        img = transforms.Resize(image, (new_h, new_w),  interpolation=Image.BICUBIC,)
 
         return {'image': img}
 
@@ -81,7 +81,8 @@ class ImageListDataset(Dataset):
 
     def __getitem__(self, idx):
         sample_path = self.img_paths[idx]
-        sample = imread(sample_path)
+        #sample = imread(sample_path)
+        sample = Image.open(sample_path)
 
         if self.transform:
             sample = self.transform(sample)
