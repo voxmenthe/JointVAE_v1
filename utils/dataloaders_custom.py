@@ -62,8 +62,8 @@ class CelebADataset(Dataset):
 
 def get_imagelist_dataloader(batch_size=30, dataset_object=None):
     """dataloader with (64, 64) images."""
-    if not list_of_image_paths:
-        raise Exception('Must provide a list of image paths')
+    if not dataset_object:
+        raise Exception('Must provide a Dataset object')
 
     imagelist_loader = DataLoader(dataset_object, batch_size=batch_size, shuffle=True)
 
