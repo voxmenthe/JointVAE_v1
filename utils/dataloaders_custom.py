@@ -60,14 +60,13 @@ class CelebADataset(Dataset):
         # Since there are no labels, we just return 0 for the "label" here
         return sample, 0
 
-def get_imagelist_dataloader(batch_size=30, list_of_image_paths=None):
+def get_imagelist_dataloader(batch_size=30, dataset_object=None):
     """dataloader with (64, 64) images."""
     if not list_of_image_paths:
         raise Exception('Must provide a list of image paths')
-    imagelist_data = ImageListDataset(list_of_image_paths,
-                                transform=transforms.ToTensor())
-    imagelist_loader = DataLoader(imagelist_data, batch_size=batch_size,
-                               shuffle=True)
+
+    imagelist_loader = DataLoader(dataset_object, batch_size=batch_size, shuffle=True)
+
     return imagelist_loader
 
 class ImageListDataset(Dataset):
