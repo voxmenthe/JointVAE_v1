@@ -58,9 +58,11 @@ class VAE(nn.Module):
             nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1),
             nn.ReLU()
         ]
-        # Add additional layer if (64, 64) images
-        if self.img_size[1:] == (64, 64):
+        # Add additional two layers if (128, 128) images # orig 64
+        if self.img_size[1:] == (128, 128):
             encoder_layers += [
+                nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
+                nn.ReLU(),
                 nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
                 nn.ReLU()
             ]
@@ -70,7 +72,6 @@ class VAE(nn.Module):
         else:
             raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. \
             Build your own architecture or reshape images!".format(img_size))
-
         # Add final layers
         encoder_layers += [
             nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
@@ -111,9 +112,11 @@ class VAE(nn.Module):
         # Define decoder
         decoder_layers = []
 
-        # Additional decoding layer for (64, 64) images
-        if self.img_size[1:] == (64, 64):
+        # Additional decoding layer for (128, 128) images # orig 64
+        if self.img_size[1:] == (128, 128):
             decoder_layers += [
+                nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
+                nn.ReLU(),
                 nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
                 nn.ReLU()
             ]
@@ -143,10 +146,9 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        print("features shape: ", features.shape)
         features = self.img_to_features(x)
-        print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
+        #hidden = self.features_to_hidden(torch.t(features.view(batch_size, -1))) # transpose option starts training but still fails later
 
         # Output parameters of latent distribution from hidden representation
         latent_dist = {}
