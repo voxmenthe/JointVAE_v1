@@ -267,6 +267,7 @@ class VAE(nn.Module):
         x : torch.Tensor
             Batch of data. Shape (N, C, H, W)
         """
+        print("x shape in forward pass: ",x.shape)
         latent_dist = self.encode(x)
         latent_sample = self.reparameterize(latent_dist)
         return self.decode(latent_sample), latent_dist
