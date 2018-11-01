@@ -105,7 +105,7 @@ class VAE(nn.Module):
             nn.Linear(self.latent_dim, self.hidden_dim),
             nn.ReLU(),
             #nn.Linear(self.hidden_dim, 64 * 4 * 4),
-            nn.Linear(self.hidden_dim, 64 * 4 * 4), # additional random attempt
+            nn.Linear(self.hidden_dim, 128 * 4 * 4), # additional random attempt
             nn.ReLU()
         )
 
