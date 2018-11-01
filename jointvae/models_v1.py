@@ -14,6 +14,7 @@ class VAE(nn.Module):
         ----------
         img_size : tuple of ints
             Size of images. E.g. (1, 32, 32) or (3, 64, 64).
+            Or, hopefully, (3, 260, 260)
 
         latent_spec : dict
             Specifies latent distribution. For example:
@@ -162,7 +163,7 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        print("x shape in encode: ", x.shape)
+        print("x shape in encode: ", x.shape) # correct, I think
         features = self.img_to_features(x)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 

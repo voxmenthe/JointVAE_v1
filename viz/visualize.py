@@ -137,7 +137,7 @@ class Visualizer():
         else:
             return make_grid(generated.data, nrow=size[1])
 
-    def all_latent_traversals(self, size=8, filename='all_traversals.png'):
+    def all_latent_traversals(self, size=8, scale=None, filename='all_traversals.png'):
         """
         Traverses all latent dimensions one by one and plots a grid of images
         where each row corresponds to a latent traversal of one latent
@@ -167,7 +167,7 @@ class Visualizer():
         if self.save_images:
             save_image(generated.data, filename, nrow=size)
         else:
-            return make_grid(generated.data, nrow=size)
+            return make_grid(generated.data, nrow=size, scale_each=scale)
 
     def _decode_latents(self, latent_samples):
         """
