@@ -1,5 +1,13 @@
+# first pass 128_v1 error message:
+RuntimeError: size mismatch, m1: [1024 x 256], m2: [1024 x 256] at /pytorch/aten/src/THC/generic/THCTensorMathBlas.cu:249
+--> 146         hidden = self.features_to_hidden(features.view(batch_size, -1))
+# Second pass
+RuntimeError: size mismatch, m1: [1024 x 256], m2: [2048 x 256]
+# Third pass revert original change and use transpose:
+Result: Starts training, but before end of epoch sizes change so fails
 
-# Original
+
+# Original with 1, 32, 32 or 3, 64, 64
 VAE(
   (img_to_features): Sequential(
     (0): Conv2d(3, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
