@@ -147,8 +147,8 @@ class VAE(nn.Module):
 
         # Encode image to hidden features
         features = self.img_to_features(x)
-        # print("features shape: ", features.shape)
-        # print("features view shape: ", features.view(batch_size, -1).shape)
+        print("features shape: ", features.shape)
+        print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
         #hidden = self.features_to_hidden(torch.t(features.view(batch_size, -1))) # transpose option starts training but still fails later
 
