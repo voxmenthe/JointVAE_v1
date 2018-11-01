@@ -84,8 +84,7 @@ class VAE(nn.Module):
         # Map encoded features into a hidden vector which will be used to
         # encode parameters of the latent distribution
         self.features_to_hidden = nn.Sequential(
-            #nn.Linear(64 * 4 * 4, self.hidden_dim),
-            nn.Linear(128 * 4 * 4, self.hidden_dim), # random attempt
+            nn.Linear(64 * 4 * 4, self.hidden_dim),
             nn.ReLU()
         )
 
@@ -104,8 +103,7 @@ class VAE(nn.Module):
         self.latent_to_features = nn.Sequential(
             nn.Linear(self.latent_dim, self.hidden_dim),
             nn.ReLU(),
-            #nn.Linear(self.hidden_dim, 64 * 4 * 4),
-            nn.Linear(self.hidden_dim, 128 * 4 * 4), # additional random attempt
+            nn.Linear(self.hidden_dim, 64 * 4 * 4),
             nn.ReLU()
         )
 
@@ -145,7 +143,8 @@ class VAE(nn.Module):
 
         # Encode image to hidden features
         features = self.img_to_features(x)
-        hidden = self.features_to_hidden(features.view(batch_size, -1))
+        #hidden = self.features_to_hidden(features.view(batch_size, -1))
+        hidden = self.features_to_hidden(torch.t(features.view(batch_size, -1)))
 
         # Output parameters of latent distribution from hidden representation
         latent_dist = {}
