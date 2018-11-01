@@ -62,7 +62,7 @@ class VAE(nn.Module):
         if self.img_size[1:] == (128, 128):
             encoder_layers += [
                 nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
-                nn.ReLU()
+                nn.ReLU(),
                 nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
                 nn.ReLU()
             ]
@@ -116,7 +116,7 @@ class VAE(nn.Module):
         if self.img_size[1:] == (128, 128):
             decoder_layers += [
                 nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
-                nn.ReLU()
+                nn.ReLU(),
                 nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
                 nn.ReLU()
             ]
