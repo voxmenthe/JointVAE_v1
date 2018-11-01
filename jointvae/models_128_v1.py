@@ -104,7 +104,8 @@ class VAE(nn.Module):
         self.latent_to_features = nn.Sequential(
             nn.Linear(self.latent_dim, self.hidden_dim),
             nn.ReLU(),
-            nn.Linear(self.hidden_dim, 64 * 4 * 4),
+            #nn.Linear(self.hidden_dim, 64 * 4 * 4),
+            nn.Linear(self.hidden_dim, 64 * 4 * 4), # additional random attempt
             nn.ReLU()
         )
 
