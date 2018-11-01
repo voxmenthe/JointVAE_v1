@@ -143,8 +143,8 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        print("features shape: ", features.shape)
         features = self.img_to_features(x)
+        print("features shape: ", features.shape)
         print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 
