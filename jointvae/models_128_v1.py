@@ -84,7 +84,8 @@ class VAE(nn.Module):
         # Map encoded features into a hidden vector which will be used to
         # encode parameters of the latent distribution
         self.features_to_hidden = nn.Sequential(
-            nn.Linear(64 * 4 * 4, self.hidden_dim),
+            #nn.Linear(64 * 4 * 4, self.hidden_dim),
+            nn.Linear(128 * 4 * 4, self.hidden_dim), # random attempt
             nn.ReLU()
         )
 
