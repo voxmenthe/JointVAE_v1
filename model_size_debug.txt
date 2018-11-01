@@ -1,3 +1,8 @@
+# Working standard with 64:
+features shape: torch.Size([2048, 64, 4, 4]) 
+features view shape: torch.Size([2048, 1024])
+
+
 # first pass 128_v1 error message:
 RuntimeError: size mismatch, m1: [1024 x 256], m2: [1024 x 256] at /pytorch/aten/src/THC/generic/THCTensorMathBlas.cu:249
 --> 146         hidden = self.features_to_hidden(features.view(batch_size, -1))

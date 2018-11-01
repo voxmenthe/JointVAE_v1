@@ -63,14 +63,14 @@ class VAE(nn.Module):
             encoder_layers += [
                 nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
                 nn.ReLU(),
-                nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
-                nn.ReLU()
+                # nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
+                # nn.ReLU()
             ]
         elif self.img_size[1:] == (32, 32):
             # (32, 32) images are supported but do not require an extra layer
             pass
         else:
-            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. \
+            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) and (None, 128, 128) supported. \
             Build your own architecture or reshape images!".format(img_size))
         # Add final layers
         encoder_layers += [
@@ -117,8 +117,8 @@ class VAE(nn.Module):
             decoder_layers += [
                 nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
                 nn.ReLU(),
-                nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
-                nn.ReLU()
+                # nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
+                # nn.ReLU()
             ]
 
         decoder_layers += [
@@ -147,6 +147,8 @@ class VAE(nn.Module):
 
         # Encode image to hidden features
         features = self.img_to_features(x)
+        print("features shape: ", features.shape)
+        print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
         #hidden = self.features_to_hidden(torch.t(features.view(batch_size, -1))) # transpose option starts training but still fails later
 
