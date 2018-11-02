@@ -70,6 +70,7 @@ class VAE(nn.Module):
         else:
             raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. \
             Build your own architecture or reshape images!".format(img_size))
+
         # Add final layers
         encoder_layers += [
             nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
@@ -143,6 +144,8 @@ class VAE(nn.Module):
 
         # Encode image to hidden features
         features = self.img_to_features(x)
+        print("features shape: ", features.shape)
+        print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 
         # Output parameters of latent distribution from hidden representation
