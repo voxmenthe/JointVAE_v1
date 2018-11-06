@@ -16,3 +16,4 @@ train_model_realdata_308_64.ipynb
 viz/__pycache__/visualize.cpython-36.pyc
 
 
+.ipynb_checkpoints/*
