@@ -4,9 +4,53 @@ from torch.nn import functional as F
 
 EPS = 1e-12
 
+class Encoder_x(nn.Module):
+    def __init__(self, channels = 3, hidden_dim=256):
+        self.channels = channels
+        self.hidden_dim = hidden_dim
+
+    super(Encoder_x).__init__()
+    self.use_cuda = use_cuda
+
+    # Define all the layers
+    self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
+    self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
+    self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+    self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+    self.fc1 = nn.Linear(64 * 4 * 4, self.hidden_dim)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = F.relu(self.fc1(x))
+
+        return x
+
+class Decoder_x(nn.Module):
+    def __init__(self, channels = 3):
+        self.channels = channels
+
+    super(Decoder_x).__init__
+
+    # Define all the layers
+    self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
+    self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
+    self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
+    self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1
+    self.sigmoid = nn.Sigmoid()
+
+    def forward:
+        x = F.relu(self.convt1(x))
+        x = F.relu(self.convt2(x))
+        x = F.relu(self.convt3(x))
+        x = self.sigmoid(self.convt4(x))
+
+        return x
 
 class VAE(nn.Module):
-    def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False):
+    def __init__(self, encoder, decoder, img_size, latent_spec, temperature=.67, use_cuda=False):
         """
         Class which defines model and forward pass.
 
@@ -29,6 +73,8 @@ class VAE(nn.Module):
         """
         super(VAE, self).__init__()
         self.use_cuda = use_cuda
+        self.features_to_hidden = encoder
+        self.features_to_image = decoder
 
         # Parameters
         self.img_size = img_size
@@ -51,44 +97,6 @@ class VAE(nn.Module):
             self.num_disc_latents = len(self.latent_spec['disc'])
         self.latent_dim = self.latent_cont_dim + self.latent_disc_dim
 
-        # Define encoder layers
-        # Intial layer
-        # nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        encoder_layers = [
-            nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1),
-            nn.ReLU()
-        ]
-        # Add additional layer if (64, 64) images
-        if self.img_size[1:] == (64, 64):
-            encoder_layers += [
-                nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
-                nn.ReLU()
-            ]
-        elif self.img_size[1:] == (32, 32):
-            # (32, 32) images are supported but do not require an extra layer
-            pass
-        else:
-            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and (None, 64, 64) supported. \
-            Build your own architecture or reshape images!".format(img_size))
-
-        # Add final layers
-        encoder_layers += [
-            nn.Conv2d(32, 64, (4, 4), stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, (4, 4), stride=2, padding=1),
-            nn.ReLU()
-        ]
-
-        # Define encoder
-        self.img_to_features = nn.Sequential(*encoder_layers)
-
-        # Map encoded features into a hidden vector which will be used to
-        # encode parameters of the latent distribution
-        self.features_to_hidden = nn.Sequential(
-            nn.Linear(64 * 4 * 4, self.hidden_dim),
-            nn.ReLU()
-        )
-
         # Encode parameters of latent distribution
         if self.is_continuous:
             self.fc_mean = nn.Linear(self.hidden_dim, self.latent_cont_dim)
@@ -107,28 +115,6 @@ class VAE(nn.Module):
             nn.Linear(self.hidden_dim, 64 * 4 * 4),
             nn.ReLU()
         )
-
-        # Define decoder
-        decoder_layers = []
-
-        # Additional decoding layer for (64, 64) images
-        if self.img_size[1:] == (64, 64):
-            decoder_layers += [
-                nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
-                nn.ReLU()
-            ]
-
-        decoder_layers += [
-            nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, self.img_size[0], (4, 4), stride=2, padding=1),
-            nn.Sigmoid()
-        ]
-
-        # Define decoder
-        self.features_to_img = nn.Sequential(*decoder_layers)
 
     def encode(self, x):
         """
