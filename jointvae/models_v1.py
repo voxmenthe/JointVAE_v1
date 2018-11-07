@@ -165,6 +165,8 @@ class VAE(nn.Module):
         # Encode image to hidden features
         print("x shape in encode: ", x.shape) # correct, I think
         features = self.img_to_features(x)
+        print("features shape: ", features.shape)
+        print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 
         # Output parameters of latent distribution from hidden representation

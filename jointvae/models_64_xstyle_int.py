@@ -95,6 +95,18 @@ class VAE(nn.Module):
             self.num_disc_latents = len(self.latent_spec['disc'])
         self.latent_dim = self.latent_cont_dim + self.latent_disc_dim
 
+        # Encoder operations
+        self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
+        self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+
+        # Decoder operations
+        self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
+        self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
+        self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
+        self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1)
+
         # Map encoded features into a hidden vector which will be used to
         # encode parameters of the latent distribution
         self.features_to_hidden = nn.Sequential(
@@ -134,7 +146,14 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        features = self.img_to_features(x)
+        #features = self.img_to_features(x)
+
+        # define our img_to_features encoder calculations
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        features = F.relu(self.conv4(x))
+
         print("features shape: ", features.shape)
         print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
@@ -243,7 +262,14 @@ class VAE(nn.Module):
             of latent distribution.
         """
         features = self.latent_to_features(latent_sample)
-        return self.features_to_img(features.view(-1, *self.reshape))
+        #return self.features_to_img(features.view(-1, *self.reshape))
+
+        # features_to_image  calculations
+        x = features.view(-1, *self.reshape)
+        x = F.relu(self.convt1())
+        x = F.relu(self.convt2(x))
+        x = F.relu(self.convt3(x))
+        return F.sigmoid(self.convt4(x))    
 
     def forward(self, x):
         """
