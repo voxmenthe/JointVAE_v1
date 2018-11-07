@@ -53,6 +53,8 @@ class ImageListDataset(Dataset):
         #sample = imread(sample_path)
         sample = Image.open(sample_path)
         #print(np.array(sample).shape)
+#         if np.array(sample).shape[2] 1= 3:
+#             print("file {} does not have 3 channels".format(self.img_paths[idx]))
 
         if self.cut_from:
             sample = np.array(sample)

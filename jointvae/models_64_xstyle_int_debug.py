@@ -4,6 +4,48 @@ from torch.nn import functional as F
 
 EPS = 1e-12
 
+# class Encoder_x(nn.Module):
+#     def __init__(self, channels = 3, hidden_dim=256):
+#         self.channels = channels
+#         self.hidden_dim = hidden_dim
+
+#         super(Encoder_x).__init__()
+
+#         # Define all the layers
+#         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
+#         self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
+#         self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
+#         self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+#         self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+
+#     def forward(self, x):
+#         x = F.relu(self.conv1(x))
+#         x = F.relu(self.conv2(x))
+#         x = F.relu(self.conv3(x))
+#         x = F.relu(self.conv4(x))
+
+#         return x
+
+# class Decoder_x(nn.Module):
+#     def __init__(self, channels = 3):
+#         self.channels = channels
+
+#         super(Decoder_x).__init__
+
+#         # Define all the layers
+#         self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
+#         self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
+#         self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
+#         self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1)
+#         self.sigmoid = nn.Sigmoid()
+
+#     def forward(self,input):
+#         x = F.relu(self.convt1(input))
+#         x = F.relu(self.convt2(x))
+#         x = F.relu(self.convt3(x))
+#         x = self.sigmoid(self.convt4(x))
+
+#         return x
 
 class VAE(nn.Module):
     def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False):
@@ -14,7 +56,6 @@ class VAE(nn.Module):
         ----------
         img_size : tuple of ints
             Size of images. E.g. (1, 32, 32) or (3, 64, 64).
-            Or, hopefully, (3, 260, 260)
 
         latent_spec : dict
             Specifies latent distribution. For example:
@@ -30,6 +71,8 @@ class VAE(nn.Module):
         """
         super(VAE, self).__init__()
         self.use_cuda = use_cuda
+        #self.img_to_features = encoder
+        #self.features_to_image = decoder
 
         # Parameters
         self.img_size = img_size
@@ -52,46 +95,17 @@ class VAE(nn.Module):
             self.num_disc_latents = len(self.latent_spec['disc'])
         self.latent_dim = self.latent_cont_dim + self.latent_disc_dim
 
-        # Define encoder layers
-        # Intial layer
-        encoder_layers = [
-            nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1), # (260, 260) --> (130, 130)
-            nn.ReLU()
-        ]
+        # Encoder operations
+        self.conv1 = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
+        self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
-        # Add additional layers if (260, 260) images 
-        if self.img_size[1:] == (260, 260):
-            # Initial layer will have reduced from (260, 260) to (130, 130)
-            # So this layer will reduce from (130, 130) to (64,64) which will
-            # then be handled by the (64, 64) layer below
-            encoder_layers += [
-                nn.Conv2d(32, 32, (4, 4), stride=2, padding=0), # (130, 130) --> (64, 64)
-                nn.ReLU()
-            ]
-
-        # Add additional layer if (64, 64) images or the reduced from (260, 260)
-        if self.img_size[1:] == (64, 64) or self.img_size[1:] == (260, 260):
-            encoder_layers += [
-                nn.Conv2d(32, 32, (4, 4), stride=2, padding=1),
-                nn.ReLU()
-            ]
-        elif self.img_size[1:] == (32, 32):
-            # (32, 32) images are supported but do not require an extra layer
-            pass
-        else:
-            raise RuntimeError("{} sized images not supported. Only (None, 32, 32) and \
-            (None, 64, 64) and (None, 260,260) supported. Build your own architecture or reshape images!".format(img_size))
-        
-        # Add final layers
-        encoder_layers += [
-            nn.Conv2d(32, 64, (4, 4), stride=2, padding=1), # (32, 32) --> (16, 16)
-            nn.ReLU(),
-            nn.Conv2d(64, 64, (4, 4), stride=2, padding=1), # (16, 16) --> (8, 8)
-            nn.ReLU()
-        ]
-
-        # Define encoder
-        self.img_to_features = nn.Sequential(*encoder_layers)
+        # Decoder operations
+        self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
+        self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
+        self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
+        self.convt4 = nn.ConvTranspose2d(32, self.img_size[0], (4, 4), stride=2, padding=1)
 
         # Map encoded features into a hidden vector which will be used to
         # encode parameters of the latent distribution
@@ -99,7 +113,7 @@ class VAE(nn.Module):
             nn.Linear(64 * 4 * 4, self.hidden_dim),
             nn.ReLU()
         )
-
+        
         # Encode parameters of latent distribution
         if self.is_continuous:
             self.fc_mean = nn.Linear(self.hidden_dim, self.latent_cont_dim)
@@ -119,37 +133,6 @@ class VAE(nn.Module):
             nn.ReLU()
         )
 
-        # Define decoder
-        decoder_layers = []
-
-        # # Additional decoding layer for (260, 260) images - reduces to (128, 128)
-        # if self.img_size[1:] == (260, 260):
-        #     decoder_layers += [
-        #         nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
-        #         nn.ReLU()
-        #     ]
-
-        # Additional decoding layer for (64, 64) images
-        if self.img_size[1:] == (64, 64):
-            decoder_layers += [
-                nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1),
-                nn.ReLU()
-            ]
-
-        decoder_layers += [
-            nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=0), # added for (260, 260) case
-            nn.ReLU(),
-            nn.ConvTranspose2d(32, self.img_size[0], (4, 4), stride=2, padding=1),
-            nn.Sigmoid()
-        ]
-
-        # Define decoder
-        self.features_to_img = nn.Sequential(*decoder_layers)
-
     def encode(self, x):
         """
         Encodes an image into parameters of a latent distribution defined in
@@ -163,8 +146,14 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        print("x shape in encode: ", x.shape) # correct, I think
-        features = self.img_to_features(x)
+        #features = self.img_to_features(x)
+
+        # define our img_to_features encoder calculations
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        features = F.relu(self.conv4(x))
+
         print("features shape: ", features.shape)
         print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
@@ -273,8 +262,17 @@ class VAE(nn.Module):
             of latent distribution.
         """
         features = self.latent_to_features(latent_sample)
-        return self.features_to_img(features.view(-1, *self.reshape))
+        #return self.features_to_img(features.view(-1, *self.reshape))
 
+        # features_to_image  calculations
+        x = features.view(-1, *self.reshape)
+        x = F.relu(self.convt1(x))
+        x = F.relu(self.convt2(x))
+        x = F.relu(self.convt3(x))
+        x = self.convt4(x)
+        print('decoded shape before sigmoid: ', x.shape)
+        return torch.sigmoid(x)
+        
     def forward(self, x):
         """
         Forward pass of model.
@@ -285,5 +283,7 @@ class VAE(nn.Module):
             Batch of data. Shape (N, C, H, W)
         """
         latent_dist = self.encode(x)
+        print("latent dist keys in decode: ", latent_dist.keys())
         latent_sample = self.reparameterize(latent_dist)
+        print("latent sample shape in decode: ", latent_sample.shape)
         return self.decode(latent_sample), latent_dist

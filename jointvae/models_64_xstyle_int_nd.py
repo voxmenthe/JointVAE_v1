@@ -4,51 +4,8 @@ from torch.nn import functional as F
 
 EPS = 1e-12
 
-class Encoder_x(nn.Module):
-    def __init__(self, channels = 3, hidden_dim=256):
-        self.channels = channels
-        self.hidden_dim = hidden_dim
-
-        super(Encoder_x).__init__()
-
-        # Define all the layers
-        # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
-        self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
-        self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
-        self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = F.relu(self.conv4(x))
-
-        return x
-
-class Decoder_x(nn.Module):
-    def __init__(self, channels = 3):
-        self.channels = channels
-
-        super(Decoder_x).__init__
-
-        # Define all the layers
-        self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
-        self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
-        self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
-        self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self,input):
-        x = F.relu(self.convt1(input))
-        x = F.relu(self.convt2(x))
-        x = F.relu(self.convt3(x))
-        x = self.sigmoid(self.convt4(x))
-
-        return x
-
 class VAE(nn.Module):
-    def __init__(self, encoder, decoder, img_size, latent_spec, temperature=.67, use_cuda=False):
+    def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False):
         """
         Class which defines model and forward pass.
 
@@ -71,8 +28,6 @@ class VAE(nn.Module):
         """
         super(VAE, self).__init__()
         self.use_cuda = use_cuda
-        self.img_to_features = encoder
-        self.features_to_image = decoder
 
         # Parameters
         self.img_size = img_size
@@ -96,7 +51,7 @@ class VAE(nn.Module):
         self.latent_dim = self.latent_cont_dim + self.latent_disc_dim
 
         # Encoder operations
-        self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
+        self.conv1 = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
         self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
         self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
@@ -105,7 +60,7 @@ class VAE(nn.Module):
         self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
         self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
         self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
-        self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1)
+        self.convt4 = nn.ConvTranspose2d(32, self.img_size[0], (4, 4), stride=2, padding=1)
 
         # Map encoded features into a hidden vector which will be used to
         # encode parameters of the latent distribution
@@ -154,8 +109,8 @@ class VAE(nn.Module):
         x = F.relu(self.conv3(x))
         features = F.relu(self.conv4(x))
 
-        print("features shape: ", features.shape)
-        print("features view shape: ", features.view(batch_size, -1).shape)
+        #print("features shape: ", features.shape)
+        #print("features view shape: ", features.view(batch_size, -1).shape)
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 
         # Output parameters of latent distribution from hidden representation
@@ -266,11 +221,13 @@ class VAE(nn.Module):
 
         # features_to_image  calculations
         x = features.view(-1, *self.reshape)
-        x = F.relu(self.convt1())
+        x = F.relu(self.convt1(x))
         x = F.relu(self.convt2(x))
         x = F.relu(self.convt3(x))
-        return F.sigmoid(self.convt4(x))    
-
+        x = self.convt4(x)
+        #print('decoded shape before sigmoid: ', x.shape)
+        return torch.sigmoid(x)
+        
     def forward(self, x):
         """
         Forward pass of model.
@@ -281,5 +238,7 @@ class VAE(nn.Module):
             Batch of data. Shape (N, C, H, W)
         """
         latent_dist = self.encode(x)
+        #print("latent dist keys in decode: ", latent_dist.keys())
         latent_sample = self.reparameterize(latent_dist)
+        #print("latent sample shape in decode: ", latent_sample.shape)
         return self.decode(latent_sample), latent_dist
