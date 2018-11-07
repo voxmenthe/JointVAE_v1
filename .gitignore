@@ -1,4 +1,5 @@
 *.pyc
+*.gif
 */*.pyc
 *.*.pyc
 *.cpython-36.pyc
