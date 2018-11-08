@@ -103,9 +103,13 @@ class VAE(nn.Module):
         # Encode image to hidden features
 
         # define our img_to_features encoder calculations
+        print("x shape before conv 1:",x.shape)
         x = F.relu(self.conv1(x))
+        print("x shape after conv 1:",x.shape)
         x = F.relu(self.conv2(x))
+        print("x shape after conv 2:",x.shape)
         x = F.relu(self.conv3(x))
+        print("x shape after conv 3:",x.shape)
         features = F.relu(self.conv4(x))
 
         print("features shape: ", features.shape)
@@ -220,9 +224,13 @@ class VAE(nn.Module):
 
         # features_to_image  calculations
         x = features.view(-1, *self.reshape)
+        print("x shape before convt 1:",x.shape)
         x = F.relu(self.convt1(x))
+        print("x shape after convt 1:",x.shape)
         x = F.relu(self.convt2(x))
+        print("x shape after convt 2:",x.shape)
         x = F.relu(self.convt3(x))
+        print("x shape after convt 3:",x.shape)
         x = self.convt4(x)
         print('decoded shape before sigmoid: ', x.shape)
         return torch.sigmoid(x)
