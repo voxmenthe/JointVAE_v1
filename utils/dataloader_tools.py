@@ -39,12 +39,15 @@ class ImageListDataset(Dataset):
     
 class ImageListDataset(Dataset):
     """Dress Sleeve Attribute Images - 216 x 261 x 3 for the most part."""
-    def __init__(self, list_of_image_paths, transform=None, cut_from=None, cut_amount=None, convert_rgb=False):
+    def __init__(self, list_of_image_paths, 
+                transform=None, cut_from=None, cut_amount=None, 
+                convert_rgb=False, error_handling=False):
         self.img_paths = list_of_image_paths
         self.transform = transform
         self.cut_from = cut_from
         self.cut_amount = cut_amount
         self.convert_rgb = convert_rgb
+        self.error_handling = error_handling
 
     def __len__(self):
         return len(self.img_paths)
@@ -54,8 +57,17 @@ class ImageListDataset(Dataset):
         #sample = imread(sample_path)
         sample = Image.open(sample_path)
         #print(np.array(sample).shape)
-#         if np.array(sample).shape[2] 1= 3:
-#             print("file {} does not have 3 channels".format(self.img_paths[idx]))
+
+        if self.error_handling:
+            if len(np.array(sample).shape) != 3:
+                print("file {} does not have 3 channels".format(self.img_paths[idx]))
+                print("Replacing with previous image")
+                sample = Image.open(self.img_paths[idx-1])
+            elif np.array(sample).shape[2] != 3:
+                print("file {} does not have 3 channels".format(self.img_paths[idx]))
+                print("Replacing with previous image")
+                sample = Image.open(self.img_paths[idx-1])
+
         if self.convert_rgb:
             sample = sample.convert("RGB")
 
