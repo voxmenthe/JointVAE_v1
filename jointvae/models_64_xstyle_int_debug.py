@@ -4,49 +4,6 @@ from torch.nn import functional as F
 
 EPS = 1e-12
 
-# class Encoder_x(nn.Module):
-#     def __init__(self, channels = 3, hidden_dim=256):
-#         self.channels = channels
-#         self.hidden_dim = hidden_dim
-
-#         super(Encoder_x).__init__()
-
-#         # Define all the layers
-#         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True)
-#         self.conv1 = nn.Conv2d(self.channels, 32, (4, 4), stride=2, padding=1)
-#         self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
-#         self.conv3 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-#         self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
-
-#     def forward(self, x):
-#         x = F.relu(self.conv1(x))
-#         x = F.relu(self.conv2(x))
-#         x = F.relu(self.conv3(x))
-#         x = F.relu(self.conv4(x))
-
-#         return x
-
-# class Decoder_x(nn.Module):
-#     def __init__(self, channels = 3):
-#         self.channels = channels
-
-#         super(Decoder_x).__init__
-
-#         # Define all the layers
-#         self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
-#         self.convt2 = nn.ConvTranspose2d(64, 32, (4, 4), stride=2, padding=1)
-#         self.convt3 = nn.ConvTranspose2d(32, 32, (4, 4), stride=2, padding=1)
-#         self.convt4 = nn.ConvTranspose2d(32, channels, (4, 4), stride=2, padding=1)
-#         self.sigmoid = nn.Sigmoid()
-
-#     def forward(self,input):
-#         x = F.relu(self.convt1(input))
-#         x = F.relu(self.convt2(x))
-#         x = F.relu(self.convt3(x))
-#         x = self.sigmoid(self.convt4(x))
-
-#         return x
-
 class VAE(nn.Module):
     def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False):
         """
@@ -71,8 +28,6 @@ class VAE(nn.Module):
         """
         super(VAE, self).__init__()
         self.use_cuda = use_cuda
-        #self.img_to_features = encoder
-        #self.features_to_image = decoder
 
         # Parameters
         self.img_size = img_size
@@ -146,7 +101,6 @@ class VAE(nn.Module):
         batch_size = x.size()[0]
 
         # Encode image to hidden features
-        #features = self.img_to_features(x)
 
         # define our img_to_features encoder calculations
         x = F.relu(self.conv1(x))

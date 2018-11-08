@@ -39,11 +39,12 @@ class ImageListDataset(Dataset):
     
 class ImageListDataset(Dataset):
     """Dress Sleeve Attribute Images - 216 x 261 x 3 for the most part."""
-    def __init__(self, list_of_image_paths, transform=None, cut_from=None, cut_amount=None):
+    def __init__(self, list_of_image_paths, transform=None, cut_from=None, cut_amount=None, convert_rgb=False):
         self.img_paths = list_of_image_paths
         self.transform = transform
         self.cut_from = cut_from
         self.cut_amount = cut_amount
+        self.convert_rgb = convert_rgb
 
     def __len__(self):
         return len(self.img_paths)
@@ -55,6 +56,8 @@ class ImageListDataset(Dataset):
         #print(np.array(sample).shape)
 #         if np.array(sample).shape[2] 1= 3:
 #             print("file {} does not have 3 channels".format(self.img_paths[idx]))
+        if self.convert_rgb:
+            sample = sample.convert("RGB")
 
         if self.cut_from:
             sample = np.array(sample)
