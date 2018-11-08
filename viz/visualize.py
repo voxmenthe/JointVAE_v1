@@ -64,9 +64,10 @@ class Visualizer():
 
             if self.save_images:
                 save_image(comparison.data, filename, nrow=size[0])
-            else:
-                return make_grid(comparison.data, nrow=size[0])
-
+              
+        return make_grid(comparison.data, nrow=size[0])
+    
+    
     def samples(self, size=(8, 8), filename='samples.png'):
         """
         Generates samples from learned distribution by sampling prior and
@@ -85,8 +86,8 @@ class Visualizer():
 
         if self.save_images:
             save_image(generated.data, filename, nrow=size[1])
-        else:
-            return make_grid(generated.data, nrow=size[1])
+
+        return make_grid(generated.data, nrow=size[1])
 
     def latent_traversal_line(self, cont_idx=None, disc_idx=None, size=8,
                               filename='traversal_line.png'):
@@ -108,8 +109,8 @@ class Visualizer():
 
         if self.save_images:
             save_image(generated.data, filename, nrow=size)
-        else:
-            return make_grid(generated.data, nrow=size)
+
+        return make_grid(generated.data, nrow=size)
 
     def latent_traversal_grid(self, cont_idx=None, cont_axis=None,
                               disc_idx=None, disc_axis=None, size=(5, 5),
@@ -134,8 +135,8 @@ class Visualizer():
 
         if self.save_images:
             save_image(generated.data, filename, nrow=size[1])
-        else:
-            return make_grid(generated.data, nrow=size[1])
+
+        return make_grid(generated.data, nrow=size[1])
 
     def all_latent_traversals(self, size=8, scale=None, filename='all_traversals.png'):
         """
@@ -166,8 +167,8 @@ class Visualizer():
 
         if self.save_images:
             save_image(generated.data, filename, nrow=size)
-        else:
-            return make_grid(generated.data, nrow=size, scale_each=scale)
+
+        return make_grid(generated.data, nrow=size, scale_each=scale)
 
     def _decode_latents(self, latent_samples):
         """
