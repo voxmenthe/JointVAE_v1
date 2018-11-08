@@ -1,5 +1,6 @@
 *.pyc
 *.gif
+*.DS_Store
 */*.pyc
 *.*.pyc
 *.cpython-36.pyc
