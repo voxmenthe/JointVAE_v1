@@ -50,20 +50,35 @@ class VAE(nn.Module):
             self.num_disc_latents = len(self.latent_spec['disc'])
         self.latent_dim = self.latent_cont_dim + self.latent_disc_dim
 
-        # Encoder operations input
-        self.conv1 = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
-        self.conv2 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 256
-        self.conv3 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 128
-        self.conv4 = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1) # extra layer for 64
-        self.conv5 = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv6 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+        # Encoder operations input branch 1
+        self.conv1a = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2a = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv3a = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4a = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
-        # Encoder jump operations
-        self.convjump1 = nn.Conv2d(self.img_size[0],32,(4,4), stride=4, padding=0)
-        self.convjump2 = nn.Conv2d(32,32,(4,4), stride=4, padding=0)
+        # Encoder operations input branch 2
+        self.conv1b = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2b = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv3b = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4b = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
-        # Encoder pooling operations
-        self.maxpool1 = nn.MaxPool2d(kernel_size=(4,4),stride=2,padding=1)
+        # Encoder operations input branch 3
+        self.conv1c = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2c = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv3c = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4c = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+
+         # Encoder operations input branch 4
+        self.conv1d = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2d = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv3d = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4d = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)       
+
+         # Encoder operations input branch 5
+        self.conv1e = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
+        self.conv2e = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv3d = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv4e = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1) 
 
         # Decoder operations
         self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
@@ -99,7 +114,7 @@ class VAE(nn.Module):
             nn.ReLU()
         )
 
-    def encode(self, x):
+    def encode(self, x_a, x_b, x_c, x_d, x_e):
         """
         Encodes an image into parameters of a latent distribution defined in
         self.latent_spec.
@@ -109,21 +124,45 @@ class VAE(nn.Module):
         x : torch.Tensor
             Batch of data, shape (N, C, H, W)
         """
-        batch_size = x.size()[0]
+        batch_size = x_a.size()[0]
 
         # Encode image to hidden features
 
-        # define our img_to_features encoder calculations
-        cj1 = F.relu(self.convjump1(x)) # 256 --> 64
-        x = F.relu(self.conv1(x)) # 256 --> 128 - out32
-        x = F.relu(self.conv2(x)) # 128 --> 64 - out32        
-        x += cj1 # add in jump layer
-        cj2 = F.relu(self.convjump2(x)) # 64 --> 16
-        x = F.relu(self.conv3(x)) # 64 --> 32 - out32
-        x = F.relu(self.conv4(x)) # 32 --> 16 - out32
-        x += cj2
-        x = F.relu(self.conv5(x))
-        features = F.relu(self.conv6(x))
+        # TODO: ADD AN OVERALL ONE FOR THE WHOLE IMAGE - AND MAYBE WEIGHT IT HIGHER?
+        # PERHAPS MAKE IT A JUMP CONNECTION ONE
+
+
+        # branch a
+        a = F.relu(self.conv1(x_a))         # 64 --> 32
+        a = F.relu(self.conv2(a))           # 32 --> 16
+        a = F.relu(self.conv3(a))           # 16 --> 8
+        features_a = F.relu(self.conv4(a))  # 8  --> 4
+
+        # branch b
+        b = F.relu(self.conv1(x_b))         # 64 --> 32
+        b = F.relu(self.conv2(b))           # 32 --> 16
+        b = F.relu(self.conv3(b))           # 16 --> 8
+        features_b = F.relu(self.conv4(b))  # 8  --> 4
+
+        # branch c
+        c = F.relu(self.conv1(x_c))         # 64 --> 32
+        c = F.relu(self.conv2(c))           # 32 --> 16
+        c = F.relu(self.conv3(c))           # 16 --> 8
+        features_c = F.relu(self.conv4(c))  # 8  --> 4
+
+        # branch d
+        d = F.relu(self.conv1(x_d))         # 64 --> 32
+        d = F.relu(self.conv2(d))           # 32 --> 16
+        d = F.relu(self.conv3(d))           # 16 --> 8
+        features_d = F.relu(self.conv4(d))  # 8  --> 4
+
+        # branch e
+        e = F.relu(self.conv1(x_e))         # 64 --> 32
+        e = F.relu(self.conv2(e))           # 32 --> 16
+        e = F.relu(self.conv3(e))           # 16 --> 8
+        features_e = F.relu(self.conv4(e))  # 8  --> 4                
+
+        features = features_a + features_b + features_c + features_d + features_e
 
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 
