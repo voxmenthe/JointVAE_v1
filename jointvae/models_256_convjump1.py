@@ -59,7 +59,8 @@ class VAE(nn.Module):
         self.conv4 = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
         # Encoder jump operations
-        self.convjump1 = nn.Conv2d(self.img_size[0],32,(2,2), stride=2, padding=0)
+        self.convjump1 = nn.Conv2d(self.img_size[0],32,(4,4), stride=4, padding=0)
+        self.convjump2 = nn.Conv2d(32,32,(4,4), stride=4, padding=0)
 
         # Encoder pooling operations
         self.maxpool1 = nn.MaxPool2d(kernel_size=(4,4),stride=2,padding=1)
@@ -114,20 +115,28 @@ class VAE(nn.Module):
 
         # define our img_to_features encoder calculations
         #print("x shape before conv 1:",x.shape)
-        cj1 = F.reul(self.convjump1(x)) # 256 --> 64
-        x = F.relu(self.conv1(x)) # 256 --> 128
+        cj1 = F.relu(self.convjump1(x)) # 256 --> 64
+        x = F.relu(self.conv1(x)) # 256 --> 128 - out32
 
         #print("x shape after conv 1:",x.shape)
 
-        x = F.relu(self.conv1aa(x)) # 128 --> 64
+        x = F.relu(self.conv1aa(x)) # 128 --> 64 - out32
         #print("x shape after conv 1aa:",x.shape)
+        
+        #print("x shape before add: ", x.shape)
+        #print("cj1 shape before add: ", cj1.shape)
+        
         x += cj1 # add in jump layer
 
-        x = F.relu(self.conv1a(x))
+        cj2 = F.relu(self.convjump2(x)) # 64 --> 16
+        x = F.relu(self.conv1a(x)) # 64 --> 32 - out32
         #print("x shape after conv 1a:",x.shape)
 
-        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv2(x)) # 32 --> 16 - out32
         #print("x shape after conv 2:",x.shape)
+        
+        x += cj2
+        
         x = F.relu(self.conv3(x))
         #print("x shape after conv 3:",x.shape)
         features = F.relu(self.conv4(x))
