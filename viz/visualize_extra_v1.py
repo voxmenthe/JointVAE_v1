@@ -184,7 +184,43 @@ class Visualizer():
         if self.model.use_cuda:
             latent_samples = latent_samples.cuda()
         return self.model.decode(latent_samples).cpu()
+    
+    ##############################################
+    ############## New Additions #################
+    ##############################################
 
+    def latent_traversal_grid2(self, cont_idx=None, cont_axis=None,
+                              disc_idx=None, disc_axis=None, size=(5, 5),
+                              first_n = None,
+                              filename='traversal_grid.png',
+                              save_sample_images=False):
+        """
+        Generates a grid of image traversals through two latent dimensions.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_grid for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        latent_samples = self.latent_traverser.traverse_grid(cont_idx=cont_idx,
+                                                             cont_axis=cont_axis,
+                                                             disc_idx=disc_idx,
+                                                             disc_axis=disc_axis,
+                                                             size=size)
+
+        # Map samples through decoder
+        generated = self._decode_latents(latent_samples)
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size[1])
+
+        if first_n:
+            return make_grid(generated.data[:first_n], nrow=size[1])
+        else:
+            return make_grid(generated.data, nrow=size[1])
+    
+    
 
 def reorder_img(orig_img, reorder, by_row=True, img_size=(3, 32, 32), padding=2):
     """
@@ -222,37 +258,3 @@ def reorder_img(orig_img, reorder, by_row=True, img_size=(3, 32, 32), padding=2)
 
     return reordered_img
 
-##############################################
-############## New Additions #################
-##############################################
-
-    def latent_traversal_grid2(self, cont_idx=None, cont_axis=None,
-                              disc_idx=None, disc_axis=None, size=(5, 5),
-                              first_n = None,
-                              filename='traversal_grid.png',
-                              save_sample_images=False):
-        """
-        Generates a grid of image traversals through two latent dimensions.
-
-        Parameters
-        ----------
-        See viz.latent_traversals.LatentTraverser.traverse_grid for parameter
-        documentation.
-        """
-        # Generate latent traversal
-        latent_samples = self.latent_traverser.traverse_grid(cont_idx=cont_idx,
-                                                             cont_axis=cont_axis,
-                                                             disc_idx=disc_idx,
-                                                             disc_axis=disc_axis,
-                                                             size=size)
-
-        # Map samples through decoder
-        generated = self._decode_latents(latent_samples)
-
-        if self.save_images:
-            save_image(generated.data, filename, nrow=size[1])
-
-        if first_n:
-            return make_grid(generated.data[first_n], nrow=size[1])
-        else:
-            return make_grid(generated.data[first_n], nrow=size[1])
