@@ -6,7 +6,8 @@ from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms
 from PIL import Image
-
+import torch
+import torchvision.transforms.functional as TF 
 
 def get_imagelist_dataloader(batch_size=30, dataset_object=None):
     """dataloader with (64, 64) images."""
@@ -94,7 +95,7 @@ class ImgDsetCut5from256(Dataset):
         self.transform = transform
         self.convert_rgb = convert_rgb
         self.error_handling = error_handling
-        self.center_crop = transforms.CenterCrop((64,64))
+        self.center_crop = transforms.CenterCrop((128,128))
 
     def __len__(self):
         return len(self.img_paths)
@@ -102,7 +103,7 @@ class ImgDsetCut5from256(Dataset):
     def __getitem__(self, idx):
         sample_path = self.img_paths[idx]
         #sample = imread(sample_path)
-        sample = Image.open(sample_path)
+        sample = Image.open(sample_path) # Image.open() -> H, W, C
         #print(np.array(sample).shape)
 
         if self.error_handling:
@@ -118,23 +119,50 @@ class ImgDsetCut5from256(Dataset):
         if self.convert_rgb:
             sample = sample.convert("RGB")
 
+        center = self.center_crop(sample)
+
         if self.transform:
             sample = self.transform(sample) 
 
         # cutting into 5 pieces
-        npimg = np.array(sample)
-        tophalf, bottomhalf = np.split(npimg,2)
-        topleft, topright = np.split(tophalf,128,axis=1)
-        bottomleft, bottomright = np.split(bottomhalf,128,axis=1)
-        center = self.center_crop(sample)
+        # npimg = np.array(sample)
+        # print(npimg.shape)
+        # tophalf, bottomhalf = np.split(npimg,2,axis=2)
+        # topleft, topright = np.split(tophalf,2,axis=1)
+        # bottomleft, bottomright = np.split(bottomhalf,2,axis=1)
 
-        print(tophalf.shape, bottomhalf.shape, topleft.shape, topright.shape)
-            
+        #print("sample shape before torch split: ",sample.shape)
+        tophalf, bottomhalf = torch.split(sample,128,dim=1)
+        #splittop = torch.split(tophalf, 2, dim=1)
+        #print("tophalf split shape: ", splittop.shape)
+        #print("half shapes: ", tophalf.shape, bottomhalf.shape, type(tophalf), type(bottomhalf))
+        topleft, topright = torch.split(tophalf, 128, dim=2)
+        bottomleft, bottomright = torch.split(bottomhalf, 128, dim=2)
+        #print("sample shape: ",sample.shape, type(sample))
+        #print("half shapes: ", tophalf.shape, bottomhalf.shape, type(tophalf), type(bottomhalf))
+        #print("quarter shapes: ", topleft.shape, topright.shape, bottomleft.shape, bottomright.shape)
+        center = TF.to_tensor(center)
+        #print(type(sample),type(center),type(topleft),type(topright),type(bottomleft),type(bottomright))
+        #print("quarter shapes: ", center.shape, topleft.shape, topright.shape, bottomleft.shape, bottomright.shape)
+    
         #sample = Image.fromarray(sample)
-        topleft = Image.fromarray(topleft)
-        topright = Image.fromarray(topright)
-        bottomleft = Image.fromarray(bottomleft)
-        bottomright = Image.fromarray(bottomright)
+        #center = Image.fromarray(center)
+        # topleft = Image.fromarray(topleft)
+        # topright = Image.fromarray(topright)
+        # bottomleft = Image.fromarray(bottomleft)
+        # bottomright = Image.fromarray(bottomright)
+
+        #sample = Image.fromarray(sample)
+        # center = TF.to_tensor(np.array(center))#.permute(2,0,1)
+        # topleft = TF.to_tensor(topleft).permute(2,0,1)
+        # topright = TF.to_tensor(topright).permute(2,0,1)
+        # bottomleft = TF.to_tensor(bottomleft).permute(2,0,1)
+        # bottomright = TF.to_tensor(bottomright).permute(2,0,1)
+
+        # print("sample shape: ",sample.shape, type(sample))
+        # print("half shapes: ", tophalf.shape, bottomhalf.shape, type(tophalf), type(bottomhalf))
+        # print("quarter shapes: ", center.shape, topleft.shape, topright.shape, bottomleft.shape, bottomright.shape)
 
         # Since there are no labels, we just return 0 for the "label" here
+        # Can pass lists or dicts 
         return [sample, topleft, topright, bottomleft, bottomright, center], 0

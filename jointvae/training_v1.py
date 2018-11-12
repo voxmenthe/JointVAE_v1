@@ -135,6 +135,15 @@ class Trainer():
         print_every_loss = 0.  # Keeps track of loss to print every
                                # self.print_loss_every
         for batch_idx, (data, label) in enumerate(data_loader):
+
+            # print("printing data shapes")
+            # for dt in data:
+            #     print(dt.shape)
+
+            # ADDED TO MAKE IT FIT
+            #data = [dt.permute(2,0,1) for dt in data]
+                
+
             iter_loss, iter_reconloss, iter_contloss, iter_discloss = self._train_iteration(data)
             
             epoch_loss += iter_loss
@@ -173,9 +182,9 @@ class Trainer():
 
         if self.use_cuda:
             if type(data) == list:
-                newdata = []
-                for dat in data:
-            data = data.cuda()
+                data = [d.cuda() for d in data]
+            else:
+                data = data.cuda()
 
         self.optimizer.zero_grad()
         recon_batch, latent_dist = self.model(data)
@@ -202,9 +211,26 @@ class Trainer():
             Dict with keys 'cont' or 'disc' or both containing the parameters
             of the latent distributions as values.
         """
+
+        data = data[0] # first element in data is whole image
+
         # Reconstruction loss is pixel wise cross-entropy
         recon_loss = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
                                             data.view(-1, self.model.num_pixels))
+
+        # recon_loss1 = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
+        #                                     data.view(-1, self.model.num_pixels))
+        # recon_loss2 = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
+        #                             data.view(-1, self.model.num_pixels))
+        # recon_loss3 = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
+        #                             data.view(-1, self.model.num_pixels))
+        # recon_loss4 = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
+        #                             data.view(-1, self.model.num_pixels))
+        # recon_loss5 = F.binary_cross_entropy(recon_data.view(-1, self.model.num_pixels),
+        #                             data.view(-1, self.model.num_pixels))                                            
+
+#        recon_loss = torch.mean([recon_loss1,recon_loss2,recon_loss3,recon_loss4,recon_loss5])
+
         # F.binary_cross_entropy takes mean over pixels, so unnormalise this
         recon_loss *= self.model.num_pixels
 

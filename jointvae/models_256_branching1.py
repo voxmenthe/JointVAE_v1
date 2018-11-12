@@ -1,6 +1,7 @@
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
+import torchvision.transforms.functional as TF 
 
 EPS = 1e-12
 
@@ -53,32 +54,37 @@ class VAE(nn.Module):
         # Encoder operations input branch 1
         self.conv1a = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2a = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
-        self.conv3a = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4a = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+        self.conv3a = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv4a = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv5a = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
         # Encoder operations input branch 2
         self.conv1b = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2b = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
-        self.conv3b = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4b = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+        self.conv3b = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv4b = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv5b = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
         # Encoder operations input branch 3
         self.conv1c = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2c = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
-        self.conv3c = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4c = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
+        self.conv3c = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv4c = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv5c = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)
 
          # Encoder operations input branch 4
         self.conv1d = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2d = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
-        self.conv3d = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4d = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)       
+        self.conv3d = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv4d = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv5d = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1)       
 
          # Encoder operations input branch 5
         self.conv1e = nn.Conv2d(self.img_size[0], 32, (4, 4), stride=2, padding=1)
         self.conv2e = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
-        self.conv3d = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
-        self.conv4e = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1) 
+        self.conv3e = nn.Conv2d(32, 32, (4, 4), stride=2, padding=1)
+        self.conv4e = nn.Conv2d(32, 64, (4, 4), stride=2, padding=1)
+        self.conv5e = nn.Conv2d(64, 64, (4, 4), stride=2, padding=1) 
 
         # Decoder operations
         self.convt1 = nn.ConvTranspose2d(64, 64, (4, 4), stride=2, padding=1)
@@ -114,7 +120,7 @@ class VAE(nn.Module):
             nn.ReLU()
         )
 
-    def encode(self, x_a, x_b, x_c, x_d, x_e):
+    def encode(self, data):
         """
         Encodes an image into parameters of a latent distribution defined in
         self.latent_spec.
@@ -124,7 +130,9 @@ class VAE(nn.Module):
         x : torch.Tensor
             Batch of data, shape (N, C, H, W)
         """
-        batch_size = x_a.size()[0]
+        x, x_a, x_b, x_c, x_d, x_e = data
+
+        batch_size = x.size()[0]
 
         # Encode image to hidden features
 
@@ -133,34 +141,34 @@ class VAE(nn.Module):
 
 
         # branch a
-        a = F.relu(self.conv1(x_a))         # 64 --> 32
-        a = F.relu(self.conv2(a))           # 32 --> 16
-        a = F.relu(self.conv3(a))           # 16 --> 8
-        features_a = F.relu(self.conv4(a))  # 8  --> 4
+        a = F.relu(self.conv1a(x_a))         # 64 --> 32
+        a = F.relu(self.conv2a(a))           # 32 --> 16
+        a = F.relu(self.conv3a(a))           # 16 --> 8
+        features_a = F.relu(self.conv4a(a))  # 8  --> 4
 
         # branch b
-        b = F.relu(self.conv1(x_b))         # 64 --> 32
-        b = F.relu(self.conv2(b))           # 32 --> 16
-        b = F.relu(self.conv3(b))           # 16 --> 8
-        features_b = F.relu(self.conv4(b))  # 8  --> 4
+        b = F.relu(self.conv1b(x_b))         # 64 --> 32
+        b = F.relu(self.conv2b(b))           # 32 --> 16
+        b = F.relu(self.conv3b(b))           # 16 --> 8
+        features_b = F.relu(self.conv4b(b))  # 8  --> 4
 
         # branch c
-        c = F.relu(self.conv1(x_c))         # 64 --> 32
-        c = F.relu(self.conv2(c))           # 32 --> 16
-        c = F.relu(self.conv3(c))           # 16 --> 8
-        features_c = F.relu(self.conv4(c))  # 8  --> 4
+        c = F.relu(self.conv1c(x_c))         # 64 --> 32
+        c = F.relu(self.conv2c(c))           # 32 --> 16
+        c = F.relu(self.conv3c(c))           # 16 --> 8
+        features_c = F.relu(self.conv4c(c))  # 8  --> 4
 
         # branch d
-        d = F.relu(self.conv1(x_d))         # 64 --> 32
-        d = F.relu(self.conv2(d))           # 32 --> 16
-        d = F.relu(self.conv3(d))           # 16 --> 8
-        features_d = F.relu(self.conv4(d))  # 8  --> 4
+        d = F.relu(self.conv1d(x_d))         # 64 --> 32
+        d = F.relu(self.conv2d(d))           # 32 --> 16
+        d = F.relu(self.conv3d(d))           # 16 --> 8
+        features_d = F.relu(self.conv4d(d))  # 8  --> 4
 
         # branch e
-        e = F.relu(self.conv1(x_e))         # 64 --> 32
-        e = F.relu(self.conv2(e))           # 32 --> 16
-        e = F.relu(self.conv3(e))           # 16 --> 8
-        features_e = F.relu(self.conv4(e))  # 8  --> 4                
+        e = F.relu(self.conv1e(x_e))         # 64 --> 32
+        e = F.relu(self.conv2e(e))           # 32 --> 16
+        e = F.relu(self.conv3e(e))           # 16 --> 8
+        features_e = F.relu(self.conv4e(e))  # 8  --> 4                
 
         features = features_a + features_b + features_c + features_d + features_e
 
