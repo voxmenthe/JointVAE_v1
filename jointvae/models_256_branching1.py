@@ -132,6 +132,8 @@ class VAE(nn.Module):
         """
         x, x_a, x_b, x_c, x_d, x_e = data
 
+        #print("x: ", x)
+        #print("type x: ",type(x))
         batch_size = x.size()[0]
 
         # Encode image to hidden features
@@ -141,36 +143,44 @@ class VAE(nn.Module):
 
 
         # branch a
-        a = F.relu(self.conv1a(x_a))         # 64 --> 32
-        a = F.relu(self.conv2a(a))           # 32 --> 16
-        a = F.relu(self.conv3a(a))           # 16 --> 8
-        features_a = F.relu(self.conv4a(a))  # 8  --> 4
+        a = F.relu(self.conv1a(x_a))         # 128 --> 64
+        a = F.relu(self.conv2a(a))           # 64 --> 32
+        a = F.relu(self.conv3a(a))           # 32 --> 16
+        a = F.relu(self.conv4a(a))           # 16 --> 8
+        features_a = F.relu(self.conv5a(a))  # 8  --> 4
 
         # branch b
-        b = F.relu(self.conv1b(x_b))         # 64 --> 32
-        b = F.relu(self.conv2b(b))           # 32 --> 16
-        b = F.relu(self.conv3b(b))           # 16 --> 8
-        features_b = F.relu(self.conv4b(b))  # 8  --> 4
+        b = F.relu(self.conv1b(x_b))         # 128 --> 64
+        b = F.relu(self.conv2b(b))           # 64 --> 32
+        b = F.relu(self.conv3b(b))           # 32 --> 16
+        b = F.relu(self.conv4b(b))           # 16 --> 8
+        features_b = F.relu(self.conv5b(b))  # 8  --> 4
 
         # branch c
-        c = F.relu(self.conv1c(x_c))         # 64 --> 32
-        c = F.relu(self.conv2c(c))           # 32 --> 16
-        c = F.relu(self.conv3c(c))           # 16 --> 8
-        features_c = F.relu(self.conv4c(c))  # 8  --> 4
+        c = F.relu(self.conv1c(x_c))         # 128 --> 64
+        c = F.relu(self.conv2c(c))           # 64 --> 32
+        c = F.relu(self.conv3c(c))           # 32 --> 16
+        c = F.relu(self.conv4c(c))           # 16 --> 8
+        features_c = F.relu(self.conv5c(c))  # 8  --> 4
+
 
         # branch d
-        d = F.relu(self.conv1d(x_d))         # 64 --> 32
-        d = F.relu(self.conv2d(d))           # 32 --> 16
-        d = F.relu(self.conv3d(d))           # 16 --> 8
-        features_d = F.relu(self.conv4d(d))  # 8  --> 4
+        d = F.relu(self.conv1d(x_d))         # 128 --> 64
+        d = F.relu(self.conv2d(d))           # 64 --> 32
+        d = F.relu(self.conv3d(d))           # 32 --> 16
+        d = F.relu(self.conv4d(d))           # 16 --> 8
+        features_d = F.relu(self.conv5d(d))  # 8  --> 4
+
 
         # branch e
-        e = F.relu(self.conv1e(x_e))         # 64 --> 32
-        e = F.relu(self.conv2e(e))           # 32 --> 16
-        e = F.relu(self.conv3e(e))           # 16 --> 8
-        features_e = F.relu(self.conv4e(e))  # 8  --> 4                
+        e = F.relu(self.conv1e(x_e))         # 128 --> 64
+        e = F.relu(self.conv2e(e))           # 64 --> 32
+        e = F.relu(self.conv3e(e))           # 32 --> 16
+        e = F.relu(self.conv4e(e))           # 16 --> 8
+        features_e = F.relu(self.conv5e(e))  # 8  --> 4             
 
         features = features_a + features_b + features_c + features_d + features_e
+        #print("features shape: ", features.shape)
 
         hidden = self.features_to_hidden(features.view(batch_size, -1))
 

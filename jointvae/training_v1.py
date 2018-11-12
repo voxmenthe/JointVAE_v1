@@ -132,17 +132,12 @@ class Trainer():
         cont_loss = 0.
         disc_loss = 0.
 
-        print_every_loss = 0.  # Keeps track of loss to print every
-                               # self.print_loss_every
-        for batch_idx, (data, label) in enumerate(data_loader):
+        print_every_loss = 0.  # Keeps track of loss to print every self.print_loss_every
+        print_e_loss_recon = 0.
+        print_e_loss_cont = 0.
+        print_e_loss_disc = 0.
 
-            # print("printing data shapes")
-            # for dt in data:
-            #     print(dt.shape)
-
-            # ADDED TO MAKE IT FIT
-            #data = [dt.permute(2,0,1) for dt in data]
-                
+        for batch_idx, (data, label) in enumerate(data_loader):               
 
             iter_loss, iter_reconloss, iter_contloss, iter_discloss = self._train_iteration(data)
             
