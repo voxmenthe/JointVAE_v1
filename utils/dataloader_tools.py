@@ -59,14 +59,20 @@ class ImageListDataset(Dataset):
         #print(np.array(sample).shape)
 
         if self.error_handling:
-            if len(np.array(sample).shape) != 3:
-                print("file {} does not have 3 channels".format(self.img_paths[idx]))
-                print("Replacing with previous image")
+            try:
+                if len(np.array(sample).shape) != 3:
+                    print("file {} does not have 3 channels".format(self.img_paths[idx]))
+                    print("Replacing with previous image")
+                    sample = Image.open(self.img_paths[idx-1])
+                elif np.array(sample).shape[2] != 3:
+                    print("file {} does not have 3 channels".format(self.img_paths[idx]))
+                    print("Replacing with previous image")
+                    sample = Image.open(self.img_paths[idx-1])
+            except:
+                print(self.img_paths[idx] + ",")
+                print("Image not found, replacing with previous")
                 sample = Image.open(self.img_paths[idx-1])
-            elif np.array(sample).shape[2] != 3:
-                print("file {} does not have 3 channels".format(self.img_paths[idx]))
-                print("Replacing with previous image")
-                sample = Image.open(self.img_paths[idx-1])
+             
 
         if self.convert_rgb:
             sample = sample.convert("RGB")
