@@ -19,3 +19,4 @@ viz/__pycache__/visualize.cpython-36.pyc
 
 
 .ipynb_checkpoints/*
+*.ipynb_checkpoints
